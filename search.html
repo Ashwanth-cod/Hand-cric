@@ -37,27 +37,36 @@
     const params = new URLSearchParams(location.search);
     const query = params.get("q");
 
-    // Replace this with a real search API or backend later
-    const mockResults = [
-      { title: "Example 1", url: "https://example.com", desc: "This is the first example." },
-      { title: "Example 2", url: "https://example.org", desc: "Another sample result." },
-      { title: "Example 3", url: "https://example.net", desc: "Yet another search result." },
-    ];
+    // DuckDuckGo Instant Answer API endpoint
+    const duckDuckGoAPI = `https://api.duckduckgo.com/?q=${query}&format=json`;
 
-    function showResults(query) {
+    function showResults(data) {
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
 
-      mockResults.forEach(result => {
-        const el = document.createElement("div");
-        el.className = "result";
-        el.innerHTML = `<a href="${result.url}" target="_blank">${result.title}</a><p>${result.desc}</p>`;
-        resultsDiv.appendChild(el);
-      });
+      if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+        data.RelatedTopics.forEach(result => {
+          if (result.Result && result.FirstURL) {
+            const el = document.createElement("div");
+            el.className = "result";
+            el.innerHTML = `<a href="${result.FirstURL}" target="_blank">${result.Text}</a><p>${result.Result}</p>`;
+            resultsDiv.appendChild(el);
+          }
+        });
+      } else {
+        resultsDiv.innerHTML = "No results found.";
+      }
     }
 
+    // Fetch the DuckDuckGo results
     if (query) {
-      showResults(query);
+      fetch(duckDuckGoAPI)
+        .then(res => res.json())
+        .then(data => showResults(data))
+        .catch(error => {
+          console.error("Error fetching DuckDuckGo results:", error);
+          document.getElementById("results").innerText = "Failed to load results.";
+        });
     } else {
       document.getElementById("results").innerText = "No query provided.";
     }
