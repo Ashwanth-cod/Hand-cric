@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <div id="results"></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q');
+
+        // Displaying the query or an error if no query was found
+        if (query) {
+            document.getElementById('results').innerHTML = `<p>Searching for: ${query}</p>`;
+            // You can add functionality to query your own search database or API here.
+        } else {
+            document.getElementById('results').innerHTML = "<p>No search query provided.</p>";
+        }
+    </script>
+</body>
+</html>
