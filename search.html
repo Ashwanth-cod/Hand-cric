@@ -1,59 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Technoix Search</title>
   <style>
     body {
       background: #121212;
       color: white;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      padding: 20px;
     }
-    h1 {
-      font-size: 3em;
-    }
-    input {
-      padding: 10px;
-      font-size: 16px;
-      width: 60%;
-      max-width: 400px;
-      border: none;
-      border-radius: 6px;
-      margin-top: 20px;
+    h1 { color: #00cc99; }
+    .results { margin-top: 20px; }
+    .result {
       background: #1e1e1e;
-      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #00cc99;
-      color: black;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
+    .result a {
+      color: #00ccff;
+      font-size: 18px;
+      text-decoration: none;
+    }
+    .result p {
+      margin: 5px 0;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
   <h1>Technoix Search</h1>
-  <form onsubmit="search(); return false;">
-    <input type="text" id="q" placeholder="Search the web..." />
-    <br>
-    <button type="submit">Search</button>
-  </form>
+  <div id="results" class="results">Loading...</div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get("q");
-    if (q) {
-      window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(q);
+    const params = new URLSearchParams(location.search);
+    const query = params.get("q");
+
+    // Replace this with a real search API or backend later
+    const mockResults = [
+      { title: "Example 1", url: "https://example.com", desc: "This is the first example." },
+      { title: "Example 2", url: "https://example.org", desc: "Another sample result." },
+      { title: "Example 3", url: "https://example.net", desc: "Yet another search result." },
+    ];
+
+    function showResults(query) {
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      mockResults.forEach(result => {
+        const el = document.createElement("div");
+        el.className = "result";
+        el.innerHTML = `<a href="${result.url}" target="_blank">${result.title}</a><p>${result.desc}</p>`;
+        resultsDiv.appendChild(el);
+      });
+    }
+
+    if (query) {
+      showResults(query);
+    } else {
+      document.getElementById("results").innerText = "No query provided.";
     }
   </script>
 </body>
