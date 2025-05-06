@@ -50,11 +50,10 @@
   </form>
 
   <script>
-    function search() {
-      const query = document.getElementById('q').value.trim();
-      if (query) {
-        window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-      }
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) {
+      window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(q);
     }
   </script>
 </body>
