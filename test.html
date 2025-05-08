@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeerJS Multiplayer Cricket Game</title>
+    <script src="https://cdn.peerjs.com/0.3.19/peer.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .button-container {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PeerJS Multiplayer Cricket Game</h1>
+
+    <div id="connection-status"></div>
+    <div class="button-container">
+        <button onclick="createGame()">Create Game</button>
+        <button onclick="joinGame()">Join Game</button>
+    </div>
+
+    <div id="gameArea" style="display: none;">
+        <h3>Choose a number between 0 and 10</h3>
+        <input type="number" id="playerChoice" min="0" max="10" />
+        <button onclick="sendChoice()">Send Choice</button>
+        <div id="gameResult"></div>
+    </div>
+
+    <script>
+        const peer = new Peer(undefined, { host: 'peerjs.com', secure: true });
+        let currentPeerId = null;
+        let currentConnection = null;
+
+        // Display peer ID on the screen for the user to share
+        peer.on('open', (id) => {
+            currentPeerId = id;
+            document.getElementById('connection-status').innerHTML = `Your Peer ID: ${id}`;
+        });
+
+        // When the connection is established, display the game interface
+        peer.on('connection', (conn) => {
+            currentConnection = conn;
+            currentConnection.on('data', (data) => {
+                document.getElementById('gameResult').innerHTML = `Opponent's Choice: ${data}`;
+                // You can add game logic here for when the opponent sends their choice
+            });
+            document.getElementById('gameArea').style.display = 'block';
+        });
+
+        // Create a new game and wait for the opponent to connect
+        function createGame() {
+            const roomName = prompt("Enter the room name to create the game:");
+            if (roomName) {
+                // In this case, we connect to the created room (which is our own Peer ID)
+                currentConnection = peer.connect(currentPeerId);
+                currentConnection.on('open', () => {
+                    alert("Waiting for the opponent to join...");
+                });
+                currentConnection.on('data', (data) => {
+                    document.getElementById('gameResult').innerHTML = `Opponent's Choice: ${data}`;
+                    // Add more game logic here if needed
+                });
+                document.getElementById('gameArea').style.display = 'block';
+            }
+        }
+
+        // Join an existing game by entering the peer ID of the opponent
+        function joinGame() {
+            const opponentId = prompt("Enter the Peer ID of the opponent to join the game:");
+            if (opponentId) {
+                // We connect to the opponent's Peer ID directly
+                currentConnection = peer.connect(opponentId);
+                currentConnection.on('open', () => {
+                    alert("Connected to opponent!");
+                    document.getElementById('gameArea').style.display = 'block';
+                });
+                currentConnection.on('data', (data) => {
+                    document.getElementById('gameResult').innerHTML = `Opponent's Choice: ${data}`;
+                    // Add more logic here for game updates
+                });
+            }
+        }
+
+        // Send the player's choice to the opponent
+        function sendChoice() {
+            const choice = document.getElementById('playerChoice').value;
+            if (choice !== "") {
+                currentConnection.send(choice);
+                document.getElementById('gameResult').innerHTML = `Your Choice: ${choice}`;
+            }
+        }
+    </script>
+</body>
+</html>
