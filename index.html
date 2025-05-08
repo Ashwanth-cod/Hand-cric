@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPL Hand Cricket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .pop-effect {
+      animation: pop 0.3s ease-out forwards;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .pop-message {
+      padding: 1rem;
+      margin: 1rem 0;
+      background-color: #ffdd57;
+      color: #000;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+<body class="container text-center">
+
+  <h1 class="mt-4">IPL Hand Cricket</h1>
+
+  <div id="modeSelect">
+    <button class="btn btn-primary m-2" onclick="selectMode('online')">Play Online</button>
+    <button class="btn btn-primary m-2" onclick="selectMode('ai')">Play with AI</button>
+  </div>
+
+  <div id="numberSelection" class="d-none">
+    <h3>Choose Your Number</h3>
+    <div id="numberButtons" class="d-flex justify-content-center flex-wrap gap-2"></div>
+  </div>
+
+  <div id="tossArea" class="d-none">
+    <h3>Team Selection & Toss</h3>
+    <p><strong>Team 1 Choice:</strong> <span id="team1Choice">-</span></p>
+    <p><strong>Team 2 Choice:</strong> <span id="team2Choice">-</span></p>
+  </div>
+
+  <div id="wicketMessage" class="pop-message pop-effect">Wicket! ⚡</div>
+  <div id="winMessage" class="pop-message pop-effect">You Win! 🎉</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVYzyWVQ5kkAG9AhDjxTy-qeHsZywFhnE",
+      authDomain: "hand-crick.firebaseapp.com",
+      databaseURL: "https://hand-crick-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "hand-crick",
+      storageBucket: "hand-crick.firebasestorage.app",
+      messagingSenderId: "958354848195",
+      appId: "1:958354848195:web:397c832b30736738f46576",
+      measurementId: "G-0LWG0CNH67"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let mode = null;
+    let peer = null, conn = null;
+
+    function selectMode(selectedMode) {
+      mode = selectedMode;
+      document.getElementById('modeSelect').classList.add('d-none');
+      document.getElementById('tossArea').classList.remove('d-none');
+
+      if (mode === 'ai') {
+        document.getElementById('team1Choice').textContent = 'Bat';
+        document.getElementById('team2Choice').textContent = aiChoose();
+        showNumberButtons();
+      } else if (mode === 'online') {
+        startPeerConnection();
+      }
+    }
+
+    function aiChoose() {
+      return Math.random() > 0.5 ? "Bat" : "Bowl";
+    }
+
+    function showNumberButtons() {
+      const container = document.getElementById('numberButtons');
+      container.innerHTML = '';
+      for (let i = 0; i <= 6; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = 'btn btn-primary';
+        btn.onclick = () => handleNumberChoice(i);
+        container.appendChild(btn);
+      }
+      document.getElementById('numberSelection').classList.remove('d-none');
+    }
+
+    function handleNumberChoice(num) {
+      alert(`You played ${num}.`);
+      if (mode === 'online' && conn) {
+        conn.send({ type: 'play', number: num });
+      }
+    }
+
+    function startPeerConnection() {
+      peer = new Peer();
+
+      peer.on('open', id => {
+        db.ref('peers/' + id).set(true);
+        db.ref('peers/' + id).onDisconnect().remove();
+        db.ref('peers').once('value', snapshot => {
+          const peers = snapshot.val();
+          for (const pid in peers) {
+            if (pid !== id) {
+              connectToPeer(pid);
+              return;
+            }
+          }
+        });
+      });
+
+      peer.on('connection', connection => {
+        conn = connection;
+        setupConnection();
+      });
+    }
+
+    function connectToPeer(id) {
+      conn = peer.connect(id);
+      setupConnection();
+    }
+
+    function setupConnection() {
+      conn.on('open', () => {
+        document.getElementById('team1Choice').textContent = 'Bat';
+        document.getElementById('team2Choice').textContent = 'Bowl';
+        showNumberButtons();
+      });
+
+      conn.on('data', data => {
+        if (data.type === 'play') {
+          alert(`Opponent played ${data.number}`);
+        }
+      });
+    }
+
+  </script>
+</body>
+</html>
