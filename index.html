@@ -3,237 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IPL Hand Cricket</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <title>IPL Hand Cricket Game</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    .hidden { display: none; }
-    .game { padding: 20px; }
-    .scoreboard { margin-top: 20px; }
-    .waiting { text-align: center; margin-top: 20px; }
+    body {
+      background-color: #f8f9fa;
+      text-align: center;
+      padding-top: 50px;
+    }
+    #gameArea {
+      display: none;
+      margin-top: 50px;
+    }
+    .number-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .number-buttons button {
+      width: 50px;
+      height: 50px;
+    }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <h1 class="text-center my-4">IPL Hand Cricket</h1>
+    <h1 class="display-4">IPL Hand Cricket</h1>
 
-    <div id="matchmaking">
-      <h3>Choose Game Mode</h3>
-      <button id="createGameBtn" class="btn btn-primary">Create Game</button>
-      <button id="joinGameBtn" class="btn btn-success">Join Game</button>
-    </div>
+    <!-- Game Setup Section -->
+    <div id="gameSetup">
+      <h2>Choose Your Team & Toss</h2>
+      <div>
+        <label for="teamSelect">Choose Your Team:</label>
+        <select id="teamSelect" class="form-control mb-3">
+          <option value="Team A">Team A</option>
+          <option value="Team B">Team B</option>
+        </select>
+      </div>
 
-    <div id="gameSetup" class="hidden">
-      <h3>Enter Game Details</h3>
-      <input type="text" id="playerName" placeholder="Your Name" class="form-control my-2" />
-      <input type="text" id="roomName" placeholder="Game Room Name" class="form-control my-2" />
-      <input type="number" id="wicketsInput" placeholder="Total Wickets" class="form-control my-2" min="1" />
-      
-      <h4>Select Your Team:</h4>
-      <select id="teamSelection" class="form-control my-2">
-        <option value="Team A">Team A</option>
-        <option value="Team B">Team B</option>
-      </select>
-      
+      <div>
+        <label for="wickets">Number of Wickets:</label>
+        <select id="wickets" class="form-control mb-3">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="tossChoice">Choose Toss (Heads or Tails):</label>
+        <select id="tossChoice" class="form-control mb-3">
+          <option value="Heads">Heads</option>
+          <option value="Tails">Tails</option>
+        </select>
+      </div>
+
       <button id="startGameBtn" class="btn btn-primary">Start Game</button>
     </div>
 
-    <div id="gameArea" class="hidden">
-      <h4>Game Mode: <span id="gameMode"></span></h4>
-      <div id="scoreboard" class="scoreboard">
-        <p>Player: <span id="playerScore">0</span> | Wickets: <span id="playerWickets">0</span></p>
-        <p>Opponent: <span id="opponentScore">0</span> | Wickets: <span id="opponentWickets">0</span></p>
-      </div>
-      <div id="numberButtons" class="my-3">
-        <button class="btn btn-outline-secondary numberBtn" data-value="1">1</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="2">2</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="3">3</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="4">4</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="5">5</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="6">6</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="7">7</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="8">8</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="9">9</button>
-        <button class="btn btn-outline-secondary numberBtn" data-value="10">10</button>
-      </div>
-      <div id="message" class="my-3"></div>
-    </div>
+    <!-- Game Area -->
+    <div id="gameArea">
+      <h3>Your Selected Team: <span id="chosenTeam"></span></h3>
+      <h4>Wickets Remaining: <span id="wicketsLeft"></span></h4>
+      <h4>Turn: <span id="currentTurn">Team A</span></h4>
 
-    <div id="waitingMessage" class="hidden text-center">
-      <h3>Waiting for opponent...</h3>
-    </div>
-    
-    <div id="tossResult" class="hidden text-center">
-      <h3 id="tossResultMessage"></h3>
+      <div id="number-buttons" class="number-buttons"></div>
+
+      <div id="selectedNumber" class="mt-3">
+        <h4>Number Chosen: <span id="chosenNumber">None</span></h4>
+      </div>
+
+      <button id="nextTurnBtn" class="btn btn-success mt-3">Next Turn</button>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.2/dist/peerjs.min.js"></script>
   <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCVYzyWVQ5kkAG9AhDjxTy-qeHsZywFhnE",
-      authDomain: "hand-crick.firebaseapp.com",
-      databaseURL: "https://hand-crick-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "hand-crick",
-      storageBucket: "hand-crick.firebasestorage.app",
-      messagingSenderId: "958354848195",
-      appId: "1:958354848195:web:397c832b30736738f46576",
-      measurementId: "G-0LWG0CNH67"
-    };
-    firebase.initializeApp(firebaseConfig);
+    let currentTeam = '';
+    let battingTeam = '';
+    let bowlingTeam = '';
+    let currentWickets = 0;
+    let currentRuns = 0;
+    let tossResult = '';
+    let gameStarted = false;
+    let numberButtons = [];
+    let gameEnded = false;
 
-    let peer;
-    let conn;
-    let playerName = "";
-    let roomName = "";
-    let gameMode = "";
-    let teamSelected = "";
-    let totalWickets = 3; // Default wickets
-    let playerChoice = null;
-    let opponentChoice = null;
-    let playerScore = 0;
-    let opponentScore = 0;
-    let playerWickets = 0;
-    let opponentWickets = 0;
-    let innings = 1;
-    let isTossComplete = false;
+    // Game setup
+    document.getElementById('startGameBtn').addEventListener('click', function() {
+      const team = document.getElementById('teamSelect').value;
+      const wickets = document.getElementById('wickets').value;
+      const tossChoice = document.getElementById('tossChoice').value;
 
-    // Initialize PeerJS
-    function initPeer() {
-      peer = new Peer(undefined, {
-        host: 'localhost',
-        port: 9000,
-        path: '/peerjs'
-      });
+      // Update team and wickets in the game area
+      document.getElementById('chosenTeam').innerText = team;
+      document.getElementById('wicketsLeft').innerText = wickets;
 
-      peer.on('open', id => {
-        console.log('My peer ID is: ' + id);
-        document.getElementById('waitingMessage').classList.remove('hidden');
-        document.getElementById('waitingMessage').innerHTML = `Waiting for opponent... Peer ID: ${id}`;
-      });
+      // Show toss result and team order after toss
+      tossResult = Math.random() > 0.5 ? "Heads" : "Tails"; // Simulate toss
+      if (tossChoice === tossResult) {
+        // If player wins toss, they choose whether to bat or bowl
+        alert('You won the toss!');
+        const decision = confirm('Do you want to Bat? (Click Cancel to Bowl)');
+        if (decision) {
+          battingTeam = team;
+          bowlingTeam = team === "Team A" ? "Team B" : "Team A";
+        } else {
+          bowlingTeam = team;
+          battingTeam = team === "Team A" ? "Team B" : "Team A";
+        }
+      } else {
+        // If player loses toss, opponent chooses batting or bowling
+        alert('You lost the toss!');
+        const opponentDecision = confirm('Opponent decided to Bat?');
+        if (opponentDecision) {
+          bowlingTeam = team;
+          battingTeam = team === "Team A" ? "Team B" : "Team A";
+        } else {
+          battingTeam = team;
+          bowlingTeam = team === "Team A" ? "Team B" : "Team A";
+        }
+      }
 
-      peer.on('connection', incomingConn => {
-        conn = incomingConn;
-        setupGame();
-      });
+      // Update the current team and show game area
+      currentTeam = battingTeam;
+      document.getElementById('currentTurn').innerText = currentTeam;
+
+      // Hide setup and show game area
+      document.getElementById('gameSetup').style.display = 'none';
+      document.getElementById('gameArea').style.display = 'block';
+
+      // Initialize variables
+      currentWickets = parseInt(wickets);
+      renderNumberButtons();
+    });
+
+    // Function to render number buttons for selecting 0-10
+    function renderNumberButtons() {
+      const container = document.getElementById('number-buttons');
+      container.innerHTML = '';
+      for (let n = 0; n <= 10; n++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-dark';
+        btn.textContent = n;
+        btn.onclick = () => playNumber(n);
+        container.appendChild(btn);
+      }
     }
 
-    // Start game logic
-    function startGame() {
-      playerName = document.getElementById('playerName').value;
-      roomName = document.getElementById('roomName').value;
-      totalWickets = parseInt(document.getElementById('wicketsInput').value);
-      teamSelected = document.getElementById('teamSelection').value;
+    // Function to handle the number selection
+    function playNumber(n) {
+      document.getElementById('chosenNumber').innerText = n;
 
-      if (!playerName || !roomName || !totalWickets || !teamSelected) {
-        alert('Please enter all details including your name, room name, team, and total wickets.');
+      if (n === 0) {
+        alert('Out! Try again next turn.');
+        currentWickets--;
+      } else {
+        currentRuns += n;
+        alert(`You scored ${n} runs.`);
+      }
+
+      // Check if wickets are left
+      if (currentWickets <= 0) {
+        alert('All wickets are down! End of innings.');
+        currentTeam = currentTeam === battingTeam ? bowlingTeam : battingTeam;
+        document.getElementById('currentTurn').innerText = currentTeam;
+        renderNumberButtons();
+      }
+    }
+
+    // Handle the next turn button click
+    document.getElementById('nextTurnBtn').addEventListener('click', function() {
+      if (gameEnded) {
+        alert("Game Over!");
         return;
       }
 
-      const gameRef = firebase.database().ref('games/' + roomName);
-      gameRef.once('value').then(snapshot => {
-        if (snapshot.exists()) {
-          joinGame(snapshot.val());
-        } else {
-          createGame();
-        }
-      });
-    }
+      // Continue to next turn
+      alert(`Turn for ${currentTeam} is over. Switch turns!`);
+      currentTeam = currentTeam === battingTeam ? bowlingTeam : battingTeam;
+      document.getElementById('currentTurn').innerText = currentTeam;
+      renderNumberButtons();
+    });
 
-    // Create game
-    function createGame() {
-      const gameRef = firebase.database().ref('games').push({
-        hostName: playerName,
-        roomName: roomName,
-        hostPeerId: peer.id,
-        totalWickets: totalWickets,
-        team: teamSelected
-      });
+  </script>
 
-      document.getElementById('gameArea').classList.remove('hidden');
-      gameMode = 'Host';
-      document.getElementById('gameMode').innerText = gameMode;
-
-      // Toss logic
-      performToss();
-    }
-
-    // Join game
-    function joinGame(gameData) {
-      conn = peer.connect(gameData.hostPeerId);
-      gameMode = 'Guest';
-      document.getElementById('gameMode').innerText = gameMode;
-      setupGame();
-
-      // Toss logic for guest
-      performToss();
-    }
-
-    // Setup the game interface after peer connection is established
-    function setupGame() {
-      document.getElementById('matchmaking').classList.add('hidden');
-      document.getElementById('gameSetup').classList.add('hidden');
-      document.getElementById('gameArea').classList.remove('hidden');
-
-      // Listen for opponent's moves
-      conn.on('data', data => {
-        opponentChoice = data;
-        updateGameState();
-      });
-
-      document.querySelectorAll('.numberBtn').forEach(button => {
-        button.addEventListener('click', () => {
-          playerChoice = parseInt(button.dataset.value);
-          conn.send(playerChoice);
-          updateGameState();
-        });
-      });
-    }
-
-    // Perform toss and decide who will bat first
-    function performToss() {
-      const tossResult = Math.random() < 0.5 ? 'Heads' : 'Tails';
-      document.getElementById('tossResult').classList.remove('hidden');
-      document.getElementById('tossResultMessage').innerText = `Toss Result: ${tossResult}`;
-      
-      setTimeout(() => {
-        if (tossResult === 'Heads') {
-          document.getElementById('message').innerText = `${gameMode === 'Host' ? 'Host' : 'Guest'} will bat first!`;
-        } else {
-          document.getElementById('message').innerText = `${gameMode === 'Host' ? 'Guest' : 'Host'} will bat first!`;
-        }
-      }, 2000);
-    }
-
-    // Update game state with new choices and wickets
-    function updateGameState() {
-      if (playerChoice && opponentChoice) {
-        if (playerChoice === opponentChoice) {
-          playerWickets++;
-        } else {
-          playerScore++;
-        }
-
-        document.getElementById('playerScore').innerText = playerScore;
-        document.getElementById('playerWickets').innerText = playerWickets;
-            // Check for end of innings or match
-    if (playerWickets >= totalWickets) {
-      innings++;
-      playerWickets = 0;
-      opponentWickets = 0;
-      document.getElementById('message').innerText = `Innings ${innings} has started!`;
-    }
-  }
-}
-
-// Event listeners
-document.getElementById('createGameBtn').addEventListener('click', () => {
-  document.getElementById('matchmaking').classList.add('hidden');
-  document.getElementById('gameSetup').classList.remove('hidden');
-  initPeer();
-});
-
-document.getElementById('startGameBtn').addEventListener('click', startGame);
-</script> </body> </html>
+</body>
+</html>
