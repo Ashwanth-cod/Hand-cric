@@ -1,202 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IPL Hand Cricket Game</title>
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f8f9fa;
-      text-align: center;
-      padding-top: 50px;
-    }
-    #gameArea {
-      display: none;
-      margin-top: 50px;
-    }
-    .number-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .number-buttons button {
-      width: 50px;
-      height: 50px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Start Match</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
-<body>
-
+<body class="p-4">
   <div class="container">
-    <h1 class="display-4">IPL Hand Cricket</h1>
+    <h1 class="text-center mb-4">Start IPL Hand Cricket Match</h1>
 
-    <!-- Game Setup Section -->
-    <div id="gameSetup">
-      <h2>Choose Your Team & Toss</h2>
-      <div>
-        <label for="teamSelect">Choose Your Team:</label>
-        <select id="teamSelect" class="form-control mb-3">
-          <option value="Team A">Team A</option>
-          <option value="Team B">Team B</option>
+    <form id="setupForm">
+      <div class="mb-3">
+        <label class="form-label">Team 1:</label>
+        <input type="text" id="team1" class="form-control" placeholder="Enter team name (e.g. CSK)" required/>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Team 2:</label>
+        <input type="text" id="team2" class="form-control" placeholder="Enter team name (e.g. MI)" required/>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Number of Wickets (1–11):</label>
+        <input type="number" id="wickets" class="form-control" min="1" max="11" required/>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Choose Odd or Even (for toss):</label>
+        <select id="oddEven" class="form-control" required>
+          <option value="">-- Choose --</option>
+          <option value="odd">Odd</option>
+          <option value="even">Even</option>
         </select>
       </div>
 
-      <div>
-        <label for="wickets">Number of Wickets:</label>
-        <select id="wickets" class="form-control mb-3">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-          <option value="11">11</option>
+      <div class="mb-3">
+        <label class="form-label">Heads or Tails:</label>
+        <select id="headsTails" class="form-control" required>
+          <option value="">-- Choose --</option>
+          <option value="heads">Heads</option>
+          <option value="tails">Tails</option>
         </select>
       </div>
 
-      <div>
-        <label for="tossChoice">Choose Toss (Heads or Tails):</label>
-        <select id="tossChoice" class="form-control mb-3">
-          <option value="Heads">Heads</option>
-          <option value="Tails">Tails</option>
-        </select>
-      </div>
-
-      <button id="startGameBtn" class="btn btn-primary">Start Game</button>
-    </div>
-
-    <!-- Game Area -->
-    <div id="gameArea">
-      <h3>Your Selected Team: <span id="chosenTeam"></span></h3>
-      <h4>Wickets Remaining: <span id="wicketsLeft"></span></h4>
-      <h4>Turn: <span id="currentTurn">Team A</span></h4>
-
-      <div id="number-buttons" class="number-buttons"></div>
-
-      <div id="selectedNumber" class="mt-3">
-        <h4>Number Chosen: <span id="chosenNumber">None</span></h4>
-      </div>
-
-      <button id="nextTurnBtn" class="btn btn-success mt-3">Next Turn</button>
-    </div>
+      <button type="submit" class="btn btn-primary">Start Match</button>
+    </form>
   </div>
 
   <script>
-    let currentTeam = '';
-    let battingTeam = '';
-    let bowlingTeam = '';
-    let currentWickets = 0;
-    let currentRuns = 0;
-    let tossResult = '';
-    let gameStarted = false;
-    let numberButtons = [];
-    let gameEnded = false;
+    document.getElementById('setupForm').addEventListener('submit', e => {
+      e.preventDefault();
 
-    // Game setup
-    document.getElementById('startGameBtn').addEventListener('click', function() {
-      const team = document.getElementById('teamSelect').value;
-      const wickets = document.getElementById('wickets').value;
-      const tossChoice = document.getElementById('tossChoice').value;
+      const gameData = {
+        team1: document.getElementById('team1').value,
+        team2: document.getElementById('team2').value,
+        wickets: parseInt(document.getElementById('wickets').value),
+        oddEven: document.getElementById('oddEven').value,
+        headsTails: document.getElementById('headsTails').value
+      };
 
-      // Update team and wickets in the game area
-      document.getElementById('chosenTeam').innerText = team;
-      document.getElementById('wicketsLeft').innerText = wickets;
-
-      // Show toss result and team order after toss
-      tossResult = Math.random() > 0.5 ? "Heads" : "Tails"; // Simulate toss
-      if (tossChoice === tossResult) {
-        // If player wins toss, they choose whether to bat or bowl
-        alert('You won the toss!');
-        const decision = confirm('Do you want to Bat? (Click Cancel to Bowl)');
-        if (decision) {
-          battingTeam = team;
-          bowlingTeam = team === "Team A" ? "Team B" : "Team A";
-        } else {
-          bowlingTeam = team;
-          battingTeam = team === "Team A" ? "Team B" : "Team A";
-        }
-      } else {
-        // If player loses toss, opponent chooses batting or bowling
-        alert('You lost the toss!');
-        const opponentDecision = confirm('Opponent decided to Bat?');
-        if (opponentDecision) {
-          bowlingTeam = team;
-          battingTeam = team === "Team A" ? "Team B" : "Team A";
-        } else {
-          battingTeam = team;
-          bowlingTeam = team === "Team A" ? "Team B" : "Team A";
-        }
-      }
-
-      // Update the current team and show game area
-      currentTeam = battingTeam;
-      document.getElementById('currentTurn').innerText = currentTeam;
-
-      // Hide setup and show game area
-      document.getElementById('gameSetup').style.display = 'none';
-      document.getElementById('gameArea').style.display = 'block';
-
-      // Initialize variables
-      currentWickets = parseInt(wickets);
-      renderNumberButtons();
+      localStorage.setItem('matchSetup', JSON.stringify(gameData));
+      window.location.href = 'match.html';
     });
-
-    // Function to render number buttons for selecting 0-10
-    function renderNumberButtons() {
-      const container = document.getElementById('number-buttons');
-      container.innerHTML = '';
-      for (let n = 0; n <= 10; n++) {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-dark';
-        btn.textContent = n;
-        btn.onclick = () => playNumber(n);
-        container.appendChild(btn);
-      }
-    }
-
-    // Function to handle the number selection
-    function playNumber(n) {
-      document.getElementById('chosenNumber').innerText = n;
-
-      if (n === 0) {
-        alert('Out! Try again next turn.');
-        currentWickets--;
-      } else {
-        currentRuns += n;
-        alert(`You scored ${n} runs.`);
-      }
-
-      // Check if wickets are left
-      if (currentWickets <= 0) {
-        alert('All wickets are down! End of innings.');
-        currentTeam = currentTeam === battingTeam ? bowlingTeam : battingTeam;
-        document.getElementById('currentTurn').innerText = currentTeam;
-        renderNumberButtons();
-      }
-    }
-
-    // Handle the next turn button click
-    document.getElementById('nextTurnBtn').addEventListener('click', function() {
-      if (gameEnded) {
-        alert("Game Over!");
-        return;
-      }
-
-      // Continue to next turn
-      alert(`Turn for ${currentTeam} is over. Switch turns!`);
-      currentTeam = currentTeam === battingTeam ? bowlingTeam : battingTeam;
-      document.getElementById('currentTurn').innerText = currentTeam;
-      renderNumberButtons();
-    });
-
   </script>
-
 </body>
 </html>
